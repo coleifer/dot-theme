@@ -232,3 +232,7 @@ To edit the global config:
 ```
 $ te -g
 ```
+
+### Dependencies
+
+Requires Python 2.x, `jinja2`, `pyyaml`, and `pillow` (python imaging library).
