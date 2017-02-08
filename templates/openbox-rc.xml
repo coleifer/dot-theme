@@ -99,13 +99,6 @@
   <keyboard>
     {# Configure variables defining screen bounds, etc. #}
     {%- set top_offset = 0 -%}{%- set bottom_offset = 0 -%}
-    {%- if tint2.enabled and tint2.include_offset -%}
-      {%- if tint2.panel_position.v == 'top' -%}
-        {%- set top_offset = bar_height + tint2.panel_margin.h -%}
-      {%- elif tint2.panel_position.v == 'bottom' -%}
-        {%- set bottom_offset = bar_height + tint2.panel_margin.h -%}
-      {%- endif -%}
-    {%- endif -%}
     {%- set extra_gap = openbox.gap_size_outer|default(0, true) -%}
     {%- from 'macros.j2' import focus_window -%}
     {%- from 'macros.j2' import kb_cmd -%}
