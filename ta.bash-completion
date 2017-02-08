@@ -1,0 +1,27 @@
+# ta completion                                      -*- shell-script -*-
+
+_ta_complete() {
+  local cur prev opts theme_names
+  COMPREPLY=()
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  prev="${COMP_WORDS[COMP_CWORD-1]}"
+  prev2="${COMP_WORDS[COMP_CWORD-2]}"
+
+  case "$prev" in
+      ta)
+          opts="$(ta lsa)"
+          COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+          ;;
+      -x)
+          COMPREPLY="rename"
+          ;;
+      *)
+          theme_names="$(ta ls --no-color)"
+          COMPREPLY=( $(compgen -W "${theme_names}" -- ${cur}) )
+          ;;
+  esac
+}
+
+complete -F _ta_complete ta
+
+# ex: ts=4 sw=4 et filetype=sh

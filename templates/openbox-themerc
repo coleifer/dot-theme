@@ -1,0 +1,63 @@
+# Text alignment.
+*.justify: {{ openbox.justify|default('right') }}
+
+# Hide bloat
+window.handle.width: 0
+window.client.padding.width: {{ openbox.client.padding.w|default(0) }}
+window.client.padding.height: {{ openbox.client.padding.h|default(0) }}
+window.*.client.color: {{ openbox.client.color }}
+
+# Set border width
+border.width: {{ openbox.border }}
+
+# Add some padding
+padding.width: {{ openbox.padding.w }}
+padding.height: {{ openbox.padding.h }}
+
+# Set title colors
+window.*.title.bg: Solid Flat
+window.*.*.bg: Parentrelative
+window.*.title.bg.color: {{ openbox.active.title }}
+window.*.border.color: {{ openbox.active.border }}
+{%- if openbox.active.label_brightness %}
+window.*.label.text.color: {{ openbox.active.label|brightness(openbox.active.label_brightness) }}
+{% else %}
+window.*.label.text.color: {{ openbox.active.label }}
+{% endif -%}
+{% if openbox.active.separator %}window.active.title.separator.color: {{ openbox.active.separator }}{% endif %}
+
+window.inactive.title.bg.color: {{ openbox.inactive.title }}
+window.inactive.border.color: {{ openbox.inactive.border }}
+{%- if openbox.inactive.label_brightness %}
+window.inactive.label.text.color: {{ openbox.inactive.label|brightness(openbox.inactive.label_brightness) }}
+{% else %}
+window.inactive.label.text.color: {{ openbox.inactive.label }}
+{% endif -%}
+{% if openbox.inactive.separator %}window.inactive.title.separator.color: {{ openbox.inactive.separator }}{% endif %}
+
+# Set buttons color
+window.active.button.*.image.color: {{ openbox.active.button|brightness(openbox.active.button_brightness) }}
+window.active.button.hover.image.color: {{ openbox.active.button|brightness(openbox.active.button_brightness + 20) }}
+window.inactive.button.*.image.color: {{ openbox.inactive.button|brightness(openbox.inactive.button_brightness) }}
+window.inactive.button.hover.image.color: {{ openbox.inactive.button|brightness(openbox.inactive.button_brightness + 20) }}
+
+# Set menu colors
+menu.*.bg: Solid Flat
+menu.*.bg.color: {{ alt_white }}
+menu.*.text.color: {{ black }}
+
+# Add some padding
+menu.border.width: 10
+menu.border.color: {{ alt_white }}
+
+# Add some submenu padding
+menu.overlap.x: -10
+menu.overlap.y: 0
+
+# Add padding between items
+menu.separator.padding.height: 3
+menu.separator.color: {{ white }}
+
+osd.border.color: {{ openbox.active.border }}
+osd.border.width: {{ openbox.border }}
+osd.label.text.color: {{ black }}

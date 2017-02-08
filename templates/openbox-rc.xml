@@ -1,0 +1,592 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openbox_config xmlns="http://openbox.org/3.4/rc" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <resistance>
+    <strength>{{ openbox.gap_size }}</strength>
+    <screen_edge_strength>{{ openbox.gap_size }}</screen_edge_strength>
+  </resistance>
+  <focus>
+    <focusNew>yes</focusNew>
+    <followMouse>yes</followMouse>
+    <focusLast>yes</focusLast>
+    <underMouse>no</underMouse>
+    <focusDelay>500</focusDelay>
+    <raiseOnFocus>no</raiseOnFocus>
+  </focus>
+  <placement>
+    <policy>UnderMouse</policy>
+    <center>no</center>
+    <monitor>Primary</monitor>
+    <primaryMonitor>{{ openbox.monitor }}</primaryMonitor>
+  </placement>
+  <theme>
+    <name>nuggie</name>
+    <titleLayout>{{ openbox.panel_items }}</titleLayout>
+    <!--
+      available characters are NDSLIMC, each can occur at most once.
+      N: window icon
+      L: window label (AKA title).
+      I: iconify
+      M: maximize
+      C: close
+      S: shade (roll up/down)
+      D: omnipresent (on all desktops).
+  -->
+    <keepBorder>yes</keepBorder>
+    <animateIconify>yes</animateIconify>
+    <font place="ActiveWindow">
+      {%- set afont = openbox.active.font if 'font' in openbox.active else openbox.font -%}
+      <name>{{ afont.name }}</name>
+      <size>{{ afont.size }}</size>
+      {% if afont.weight and afont.weight != 'Normal' %}<weight>{{ afont.weight|default('Normal', true) }}</weight>{% endif %}
+      <slant>Normal</slant>
+    </font>
+    <font place="InactiveWindow">
+      {%- set ifont = openbox.inactive.font if 'font' in openbox.inactive else openbox.font -%}
+      <name>{{ ifont.name }}</name>
+      <size>{{ ifont.size }}</size>
+      {% if ifont.weight and ifont.weight != 'Normal' %}<weight>{{ ifont.weight|default('Normal', true) }}</weight>{% endif %}
+      <slant>Normal</slant>
+    </font>
+    <font place="MenuHeader">
+      <name>{{ openbox.font.name }}</name>
+      <size>{{ openbox.font.size }}</size>
+      <weight>Bold</weight>
+      <slant>Normal</slant>
+    </font>
+    <font place="MenuItem">
+      <name>{{ openbox.font.name }}</name>
+      <size>{{ openbox.font.size }}</size>
+      <weight>Normal</weight>
+      <slant>Normal</slant>
+    </font>
+    <font place="ActiveOnScreenDisplay">
+      <name>{{ openbox.font.name }}</name>
+      <size>{{ openbox.font.size }}</size>
+      <weight>Normal</weight>
+      <slant>Normal</slant>
+    </font>
+    <font place="InactiveOnScreenDisplay">
+      <name>{{ openbox.font.name }}</name>
+      <size>{{ openbox.font.size }}</size>
+      <weight>Normal</weight>
+      <slant>Normal</slant>
+    </font>
+  </theme>
+  <desktops>
+    <number>{{ openbox.desktops|length }}</number>
+    <firstdesk>1</firstdesk>
+    <names>
+      {% for desktop in openbox.desktops %}<name>{{ desktop }}</name>
+      {% endfor %}
+    </names>
+    <popupTime>0</popupTime>
+  </desktops>
+  <resize>
+    <drawContents>yes</drawContents>
+    <popupShow>Never</popupShow>
+    <popupPosition>Center</popupPosition>
+    <popupFixedPosition>
+      <x>0</x>
+      <y>0</y>
+    </popupFixedPosition>
+  </resize>
+  <margins>
+    <top>0</top>
+    <bottom>0</bottom>
+    <left>0</left>
+    <right>0</right>
+  </margins>
+  <keyboard>
+    {# Configure variables defining screen bounds, etc. #}
+    {%- set top_offset = 0 -%}{%- set bottom_offset = 0 -%}
+    {%- if tint2.enabled and tint2.include_offset -%}
+      {%- if tint2.panel_position.v == 'top' -%}
+        {%- set top_offset = bar_height + tint2.panel_margin.h -%}
+      {%- elif tint2.panel_position.v == 'bottom' -%}
+        {%- set bottom_offset = bar_height + tint2.panel_margin.h -%}
+      {%- endif -%}
+    {%- endif -%}
+    {%- set extra_gap = openbox.gap_size_outer|default(0, true) -%}
+    {%- from 'macros.j2' import focus_window -%}
+    {%- from 'macros.j2' import kb_cmd -%}
+    {%- from 'macros.j2' import generic_action -%}
+    {%- from 'macros.j2' import move_relative -%}
+    {%- from 'macros.j2' import resize_relative -%}
+    {%- from 'macros.j2' import run_cmd -%}
+    {%- from 'macros.j2' import tile -%}
+
+    {# Available: b         n q   u v x y z #}
+    {# Available: A B F G M N O T U V X Y Z #}
+
+    {# Change focus using Alt+ hjkl. #}
+    {{ focus_window('A-h', 'west') }}
+    {{ focus_window('A-j', 'south') }}
+    {{ focus_window('A-k', 'north') }}
+    {{ focus_window('A-l', 'east') }}
+
+    {# Alt+ HJKL -> tiling window locations. #}
+    {{ tile('A-S-', screen.w, screen.h, top_offset, bottom_offset, openbox.gap_size + extra_gap, openbox.gap_size, 0.6, 0.6, openbox.monitor) }}
+
+    {# Resize windows by pressing Alt+r then hjkl #}
+    <keybind key="A-r" chroot="true">
+      {# Resize windows using directions #}
+      {{ resize_relative('h', right=-(openbox.gap_size // 2)) }}
+      {{ resize_relative('j', bottom=(openbox.gap_size // 2)) }}
+      {{ resize_relative('k', bottom=-(openbox.gap_size // 2)) }}
+      {{ resize_relative('l', right=(openbox.gap_size // 2)) }}
+
+      {# Move windows using shift+direction #}
+      {{ move_relative('S-h', x=-openbox.gap_size) }}
+      {{ move_relative('S-j', y=openbox.gap_size) }}
+      {{ move_relative('S-k', y=-openbox.gap_size) }}
+      {{ move_relative('S-l', x=openbox.gap_size) }}
+      {{ generic_action('f', 'MoveResizeTo', x='center', y='center') }}
+
+      <keybind key="Escape"><action name="BreakChroot" /></keybind>
+      <keybind key="0x42"><action name="BreakChroot" /></keybind>
+      <keybind key="Return"><action name="BreakChroot" /></keybind>
+    </keybind>
+
+    <keybind key="A-m" chroot="true">
+      {{ move_relative('h', x=-openbox.gap_size) }}
+      {{ move_relative('j', y=openbox.gap_size) }}
+      {{ move_relative('k', y=-openbox.gap_size) }}
+      {{ move_relative('l', x=openbox.gap_size) }}
+      {{ generic_action('f', 'MoveResizeTo', x='center', y='center') }}
+
+      {{ generic_action('S-h', 'MoveResizeTo', true, x=openbox.gap_size) }}
+      {{ generic_action('S-j', 'MoveResizeTo', true, y=-openbox.gap_size) }}
+      {{ generic_action('S-k', 'MoveResizeTo', true, y=openbox.gap_size) }}
+      {{ generic_action('S-l', 'MoveResizeTo', true, x=-openbox.gap_size) }}
+      <keybind key="Escape"><action name="BreakChroot" /></keybind>
+      <keybind key="0x42"><action name="BreakChroot" /></keybind>
+      <keybind key="Return"><action name="BreakChroot" /></keybind>
+    </keybind>
+
+    {% for i in range(1, 4) %}
+    <keybind key="A-{{ i }}">
+      <action name="GoToDesktop"><to>{{ i }}</to></action>
+    </keybind>
+    <keybind key="A-S-{{ i }}">
+      <action name="SendToDesktop">
+        <to>{{ i }}</to>
+        <follow>no</follow>
+      </action>
+    </keybind>
+    {% endfor %}
+
+    {{ kb_cmd('A-Return', 'urxvt') }}
+    {{ kb_cmd('A-c', 'tc') }}
+    {{ kb_cmd('A-d', 'dmenu_run') }}
+    {{ kb_cmd('A-e', 'te') }}
+    {{ kb_cmd('A-S-e', 'te -g') }}
+    {{ kb_cmd('A-o', 'blurlock') }}
+
+    {# Special keys #}
+    {{ kb_cmd('XF86AudioRaiseVolume', 'amixer set Master 2%+ unmute') }}
+    {{ kb_cmd('XF86AudioLowerVolume', 'amixer set Master 2%- unmute') }}
+    {{ kb_cmd('XF86AudioMuteVolume', 'amixer set Master toggle') }}
+    {{ kb_cmd('XF86MonBrightnessUp', 'xbacklight -inc 10') }}
+    {{ kb_cmd('XF86MonBrightnessDown', 'xbacklight -dec 10') }}
+
+    {# window manager commands #}
+    <keybind key="A-S-Return"><action name="ToggleFullscreen" /></keybind>
+    <keybind key="A-S-c"><action name="ToggleDecorations" /></keybind>
+    <keybind key="A-S-space"><action name="ToggleAlwaysOnTop" /></keybind>
+    <keybind key="A-S-q"><action name="Close"/></keybind>
+    <keybind key="A-F4"><action name="Close"/></keybind>
+    <keybind key="A-S-r"><action name="Reconfigure" /></keybind>
+    <keybind key="A-S-x"><action name="Exit" /></keybind>
+
+    {# Lightweight script targets #}
+    {{ kb_cmd('C-S-h', 'zgoog') }}
+  </keyboard>
+
+  <mouse>
+    <dragThreshold>1</dragThreshold>
+    <doubleClickTime>500</doubleClickTime>
+    <screenEdgeWarpTime>0</screenEdgeWarpTime>
+    <screenEdgeWarpMouse>false</screenEdgeWarpMouse>
+    <context name="Frame">
+      <mousebind button="A-Left" action="Press">
+        <action name="Focus"/>
+        <action name="Raise"/>
+      </mousebind>
+      <mousebind button="A-Left" action="Click">
+        <action name="Unshade"/>
+      </mousebind>
+      <mousebind button="A-Left" action="Drag">
+        <action name="Move"/>
+      </mousebind>
+      <mousebind button="A-Right" action="Press">
+        <action name="Focus"/>
+        <action name="Raise"/>
+        <action name="Unshade"/>
+      </mousebind>
+      <mousebind button="A-Right" action="Drag">
+        <action name="Resize"/>
+      </mousebind>
+      <mousebind button="A-Middle" action="Press">
+        <action name="Lower"/>
+        <action name="FocusToBottom"/>
+        <action name="Unfocus"/>
+      </mousebind>
+    </context>
+
+    <context name="Titlebar">
+      <mousebind button="Left" action="Drag">
+        <action name="Move"/>
+      </mousebind>
+      <mousebind button="Left" action="DoubleClick">
+        <action name="ToggleMaximize"/>
+      </mousebind>
+      <mousebind button="Right" action="DoubleClick">
+        <action name="ToggleShade"/>
+      </mousebind>
+    </context>
+
+    <context name="Titlebar Top Right Bottom Left TLCorner TRCorner BRCorner BLCorner">
+      <mousebind button="Left" action="Press">
+        <action name="Focus"/>
+        <action name="Raise"/>
+        <action name="Unshade"/>
+      </mousebind>
+      <mousebind button="Middle" action="Press">
+        <action name="Lower"/>
+        <action name="FocusToBottom"/>
+        <action name="Unfocus"/>
+      </mousebind>
+      <mousebind button="Right" action="Press">
+        <action name="Focus"/>
+        <action name="Raise"/>
+        <action name="ShowMenu">
+          <menu>client-menu</menu>
+        </action>
+      </mousebind>
+    </context>
+    <context name="Top">
+      <mousebind button="Left" action="Drag">
+        <action name="Resize">
+          <edge>top</edge>
+        </action>
+      </mousebind>
+    </context>
+    <context name="Left">
+      <mousebind button="Left" action="Drag">
+        <action name="Resize">
+          <edge>left</edge>
+        </action>
+      </mousebind>
+    </context>
+    <context name="Right">
+      <mousebind button="Left" action="Drag">
+        <action name="Resize">
+          <edge>right</edge>
+        </action>
+      </mousebind>
+    </context>
+    <context name="Bottom">
+      <mousebind button="Left" action="Drag">
+        <action name="Resize">
+          <edge>bottom</edge>
+        </action>
+      </mousebind>
+      <mousebind button="Right" action="Press">
+        <action name="Focus"/>
+        <action name="Raise"/>
+        <action name="ShowMenu">
+          <menu>client-menu</menu>
+        </action>
+      </mousebind>
+    </context>
+    <context name="TRCorner BRCorner TLCorner BLCorner">
+      <mousebind button="Left" action="Press">
+        <action name="Focus"/>
+        <action name="Raise"/>
+        <action name="Unshade"/>
+      </mousebind>
+      <mousebind button="Left" action="Drag">
+        <action name="Resize"/>
+      </mousebind>
+    </context>
+    <context name="Client">
+      <mousebind button="Left" action="Press">
+        <action name="Focus"/>
+        <action name="Raise"/>
+      </mousebind>
+      <mousebind button="Middle" action="Press">
+        <action name="Focus"/>
+        <action name="Raise"/>
+      </mousebind>
+      <mousebind button="Right" action="Press">
+        <action name="Focus"/>
+        <action name="Raise"/>
+      </mousebind>
+    </context>
+    <context name="Icon">
+      <mousebind button="Left" action="Press">
+        <action name="Focus"/>
+        <action name="Raise"/>
+        <action name="Unshade"/>
+        <action name="ShowMenu">
+          <menu>client-menu</menu>
+        </action>
+      </mousebind>
+      <mousebind button="Right" action="Press">
+        <action name="Focus"/>
+        <action name="Raise"/>
+        <action name="ShowMenu">
+          <menu>client-menu</menu>
+        </action>
+      </mousebind>
+    </context>
+    <context name="AllDesktops">
+      <mousebind button="Left" action="Press">
+        <action name="Focus"/>
+        <action name="Raise"/>
+        <action name="Unshade"/>
+      </mousebind>
+      <mousebind button="Left" action="Click">
+        <action name="ToggleOmnipresent"/>
+      </mousebind>
+    </context>
+    <context name="Shade">
+      <mousebind button="Left" action="Press">
+        <action name="Focus"/>
+        <action name="Raise"/>
+      </mousebind>
+      <mousebind button="Left" action="Click">
+        <action name="ToggleShade"/>
+      </mousebind>
+    </context>
+    <context name="Iconify">
+      <mousebind button="Left" action="Press">
+        <action name="Focus"/>
+        <action name="Raise"/>
+      </mousebind>
+      <mousebind button="Left" action="Click">
+        <action name="Iconify"/>
+      </mousebind>
+    </context>
+    <context name="Maximize">
+      <mousebind button="Left" action="Press">
+        <action name="Focus"/>
+        <action name="Raise"/>
+        <action name="Unshade"/>
+      </mousebind>
+      <mousebind button="Middle" action="Press">
+        <action name="Focus"/>
+        <action name="Raise"/>
+        <action name="Unshade"/>
+      </mousebind>
+      <mousebind button="Right" action="Press">
+        <action name="Focus"/>
+        <action name="Raise"/>
+        <action name="Unshade"/>
+      </mousebind>
+      <mousebind button="Left" action="Click">
+        <action name="ToggleMaximize"/>
+      </mousebind>
+      <mousebind button="Middle" action="Click">
+        <action name="ToggleMaximize">
+          <direction>vertical</direction>
+        </action>
+      </mousebind>
+      <mousebind button="Right" action="Click">
+        <action name="ToggleMaximize">
+          <direction>horizontal</direction>
+        </action>
+      </mousebind>
+    </context>
+    <context name="Close">
+      <mousebind button="Left" action="Press">
+        <action name="Focus"/>
+        <action name="Raise"/>
+        <action name="Unshade"/>
+      </mousebind>
+      <mousebind button="Left" action="Click">
+        <action name="Close"/>
+      </mousebind>
+    </context>
+    <context name="Desktop">
+      <mousebind button="Up" action="Click">
+        <action name="GoToDesktop">
+          <to>previous</to>
+        </action>
+      </mousebind>
+      <mousebind button="Down" action="Click">
+        <action name="GoToDesktop">
+          <to>next</to>
+        </action>
+      </mousebind>
+      <mousebind button="A-Up" action="Click">
+        <action name="GoToDesktop">
+          <to>previous</to>
+        </action>
+      </mousebind>
+      <mousebind button="A-Down" action="Click">
+        <action name="GoToDesktop">
+          <to>next</to>
+        </action>
+      </mousebind>
+      <mousebind button="C-A-Up" action="Click">
+        <action name="GoToDesktop">
+          <to>previous</to>
+        </action>
+      </mousebind>
+      <mousebind button="C-A-Down" action="Click">
+        <action name="GoToDesktop">
+          <to>next</to>
+        </action>
+      </mousebind>
+      <mousebind button="Left" action="Press">
+        <action name="Focus"/>
+        <action name="Raise"/>
+      </mousebind>
+      <mousebind button="Right" action="Press">
+        <action name="Focus"/>
+        <action name="Raise"/>
+      </mousebind>
+    </context>
+    <context name="Root">
+      <!-- Menus -->
+      <mousebind button="Middle" action="Press">
+        <action name="ShowMenu">
+          <menu>root-menu</menu>
+        </action>
+      </mousebind>
+      <mousebind button="Right" action="Press">
+        <action name="Execute">
+          <command>urxvtdc -name "launcher" -e sh -c 'NUGGET=1 /bin/bash -i -t'</command>
+        </action>
+      </mousebind>
+    </context>
+    <context name="MoveResize">
+      <mousebind button="Up" action="Click">
+        <action name="GoToDesktop">
+          <to>previous</to>
+        </action>
+      </mousebind>
+      <mousebind button="Down" action="Click">
+        <action name="GoToDesktop">
+          <to>next</to>
+        </action>
+      </mousebind>
+      <mousebind button="A-Up" action="Click">
+        <action name="GoToDesktop">
+          <to>previous</to>
+        </action>
+      </mousebind>
+      <mousebind button="A-Down" action="Click">
+        <action name="GoToDesktop">
+          <to>next</to>
+        </action>
+      </mousebind>
+    </context>
+  </mouse>
+  <menu>
+    <file>menu.xml</file>
+    <hideDelay>200</hideDelay>
+    <middle>no</middle>
+    <submenuShowDelay>100</submenuShowDelay>
+    <submenuHideDelay>400</submenuHideDelay>
+    <showIcons>yes</showIcons>
+    <manageDesktops>yes</manageDesktops>
+  </menu>
+  <applications>
+    <!--
+  # this is an example with comments through out. use these to make your
+  # own rules, but without the comments of course.
+  # you may use one or more of the name/class/role/title/type rules to specify
+  # windows to match
+
+  <application name="the window's _OB_APP_NAME property (see obxprop)"
+              class="the window's _OB_APP_CLASS property (see obxprop)"
+          groupname="the window's _OB_APP_GROUP_NAME property (see obxprop)"
+         groupclass="the window's _OB_APP_GROUP_CLASS property (see obxprop)"
+               role="the window's _OB_APP_ROLE property (see obxprop)"
+              title="the window's _OB_APP_TITLE property (see obxprop)"
+               type="the window's _OB_APP_TYPE property (see obxprob)..
+                      (if unspecified, then it is 'dialog' for child windows)">
+  # you may set only one of name/class/role/title/type, or you may use more
+  # than one together to restrict your matches.
+
+  # the name, class, role, and title use simple wildcard matching such as those
+  # used by a shell. you can use * to match any characters and ? to match
+  # any single character.
+
+  # the type is one of: normal, dialog, splash, utility, menu, toolbar, dock,
+  #    or desktop
+
+  # when multiple rules match a window, they will all be applied, in the
+  # order that they appear in this list
+
+
+    # each rule element can be left out or set to 'default' to specify to not
+    # change that attribute of the window
+
+    <decor>yes</decor>
+    # enable or disable window decorations
+
+    <shade>no</shade>
+    # make the window shaded when it appears, or not
+
+    <position force="no">
+      # the position is only used if both an x and y coordinate are provided
+      # (and not set to 'default')
+      # when force is "yes", then the window will be placed here even if it
+      # says you want it placed elsewhere.  this is to override buggy
+      # applications who refuse to behave
+      <x>center</x>
+      # a number like 50, or 'center' to center on screen. use a negative number
+      # to start from the right (or bottom for <y>), ie -50 is 50 pixels from
+      # the right edge (or bottom). use 'default' to specify using value
+      # provided by the application, or chosen by openbox, instead.
+      <y>200</y>
+      <monitor>1</monitor>
+      # specifies the monitor in a xinerama setup.
+      # 1 is the first head, or 'mouse' for wherever the mouse is
+    </position>
+
+    <size>
+      # the size to make the window.
+      <width>20</width>
+      # a number like 20, or 'default' to use the size given by the application.
+      # you can use fractions such as 1/2 or percentages such as 75% in which
+      # case the value is relative to the size of the monitor that the window
+      # appears on.
+      <height>30%</height>
+    </size>
+
+    <focus>yes</focus>
+    # if the window should try be given focus when it appears. if this is set
+    # to yes it doesn't guarantee the window will be given focus. some
+    # restrictions may apply, but Openbox will try to
+
+    <desktop>1</desktop>
+    # 1 is the first desktop, 'all' for all desktops
+
+    <layer>normal</layer>
+    # 'above', 'normal', or 'below'
+
+    <iconic>no</iconic>
+    # make the window iconified when it appears, or not
+
+    <skip_pager>no</skip_pager>
+    # asks to not be shown in pagers
+
+    <skip_taskbar>no</skip_taskbar>
+    # asks to not be shown in taskbars. window cycling actions will also
+    # skip past such windows
+
+    <fullscreen>yes</fullscreen>
+    # make the window in fullscreen mode when it appears
+
+    <maximized>true</maximized>
+    # 'Horizontal', 'Vertical' or boolean (yes/no)
+  </application>
+
+  # end of the example
+-->
+  </applications>
+</openbox_config>

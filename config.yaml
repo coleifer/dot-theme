@@ -1,0 +1,113 @@
+settings:
+  active: $red
+  highlight: $cyan
+  inactive: $alt_black
+  transparency: 95
+  window_border: $black
+  window_title: $alt_black
+  font:
+    fallbacks:
+      - "-*-icons-medium-*-*-*-15-*-*-*-*-*-*-*"
+    bar: Roboto:style=Light
+    bar_size: 10
+    default: Roboto Light
+    size: 10
+    term: xft:Tamsyn:pixelsize=15
+    term_b: xft:Tamsyn:pixelsize=15
+    term_i: xft:Tamsyn:pixelsize=15
+  i3:
+    bar:
+      bg: $panel
+      cmd: i3status
+      enabled: true
+      fg: $text
+      font:
+        name: "Terminus, Icons"
+        size: "12px"
+      height: $bar_height
+      mode: dock
+      position: top
+      separator: $wall
+      separator_symbol: null
+      tray_padding: 4
+      ws:
+        bg: $wall
+        border: $active
+        fg: $active
+      ws_focus:
+        bg: $active
+        border: $active
+        fg: $wall
+    border: $active
+    border_transparency: false
+    border_unfocused: $title
+    font: $font.term
+    gaps:
+      inner: 20
+      outer: 5
+    new_float: "pixel 4"
+    new_window: "pixel 2"
+  openbox:
+    active:
+      border: $border
+      button: $red
+      button_brightness: 0
+      title: $title
+      label: $text
+      separator: $active
+      label_brightness: 0
+    border: 1
+    client:
+      color: $panel
+      padding:
+        h: 0
+        w: 0
+    desktops:
+      - web
+      - code
+      - etc
+    font:
+      name: $font.default
+      size: $font.size
+    gap_size: 24
+    gap_size_outer: 36
+    inactive:
+      border: $border
+      button: $red
+      button_brightness: 0
+      title: $title
+      label: $text
+      separator: $inactive
+      label_brightness: 0
+    justify: right
+    margin_multiplier: 2
+    monitor: 1
+    padding:
+      h: 9
+      w: 13
+    panel_items: LC
+  screen:
+    h: 1080
+    w: 1920
+  terminal:
+    border:
+      external: 0
+      internal: 24
+    highlightColor: $highlight
+    highlightTextColor: $white
+    letter_space: 0
+    line_space: 3
+  vim:
+    colors:
+      - miromiro
+templates:
+  i3.tpl: i3.conf
+  openbox-rc.xml: rc.xml
+  openbox-themerc: themerc
+  shell_colors: shell_colors
+  xresources.tpl: Xresources
+hooks:
+  set:
+    - xrdb -merge ~/.Xresources
+    - echo "reload your window-manager here!"
+  add: []

@@ -1,0 +1,88 @@
+#!/bin/bash
+
+ta_home="$HOME/.config/ta"
+current="${ta_home}/current"
+theme_dir_diff="${ta_home}/themes"
+theme_dir="${theme_dir_diff}/full-context"
+
+theme=$(basename $(readlink $current))
+filename="${theme_dir}/${theme}.yaml"
+update_target="current"
+
+full=true
+global=0
+terminal=true
+update=true
+
+while getopts "dgTU" opt ; do
+  case $opt in
+    d)
+      # Diff mode.
+      filename="${theme_dir_diff}/${theme}.yaml"
+      full=false
+      ;;
+    g)
+      # Global mode.
+      filename="${ta_home}/config.yaml"
+      global=1
+      update_target="all"
+      ;;
+    T)
+      # Do not pop up a new terminal.
+      terminal=false
+      ;;
+    U)
+      # Do not update templates / re-render.
+      update=false
+      ;;
+  esac
+done
+
+shift $((OPTIND - 1))
+
+if [ $# -gt 0 -a $global -eq 1 ]; then
+  echo "Incorrect usage - editing global config requires no parameters."
+  exit 2
+elif [ $# -gt 1 ]; then
+  echo "$0 on accepts one parameter, an optional theme name."
+  exit 3
+elif [ $# -eq 1 ]; then
+  theme="$1"
+  update_target="$theme"
+  if $full; then
+    filename="${theme_dir}/${theme}.yaml"
+  else
+    filename="${theme_dir_diff}/${theme}.yaml"
+  fi
+fi
+
+if [ ! -f $filename ]; then
+  echo "Theme named \"${theme}\" not found (${filename})!"
+  exit 4
+fi
+
+if $full; then
+  update_target="$update_target -f"
+fi
+
+filehash=$(md5sum $filename | cut -f 1 -d ' ')
+if $terminal; then
+  urxvt -e sh -c "vim $filename"
+else
+  vim "$filename"
+fi
+
+newhash=$(md5sum $filename | cut -f 1 -d ' ')
+if [[ $filehash != $newhash ]]; then
+  if $update; then
+    ta update $update_target
+    if [ $global -eq 1 ]; then
+      msg="* <b>Updated all</b> themes.<br>* Ran update hooks for ${theme}"
+    else
+      msg="* <b>Updated ${theme}</b>.<br>* Ran update hooks"
+    fi
+    notify-send -a "theme-editor" -t 20 "Changes saved" "$msg"
+  fi
+elif $update; then
+  notify-send -a "theme-editor" -t 20 -u low "No changes" "No changes were made."
+fi

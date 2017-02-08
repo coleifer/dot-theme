@@ -1,0 +1,115 @@
+{% macro tile(prefix, sw, sh, top_offset, bottom_offset, outer_margin, inner_margin, v_split=0.5, h_split=0.5, monitor=1) %}
+  {%- set h=sh - (top_offset + bottom_offset) -%}
+  {%- set m=outer_margin * 2 -%}
+  {%- set inner_h=(h - m)|int -%}
+  {%- set inner_w=(sw - m)|int -%}
+  {%- set w_left=((inner_w - inner_margin) * v_split)|int -%}
+  {%- set w_right=((inner_w - inner_margin) * (1 - v_split))|int -%}
+  {%- set h_top=((inner_h - inner_margin) * h_split)|int -%}
+  {%- set h_bottom=((inner_h - inner_margin) * (1 - h_split))|int -%}
+  {%- set mid_x=(outer_margin + w_left + inner_margin)|int -%}
+  {%- set mid_y=(outer_margin + h_top + inner_margin)|int -%}
+<keybind key="{{ prefix }}h">
+    <action name="MoveResizeTo">
+      <x>{{ outer_margin }}</x>
+      <y>{{ outer_margin + top_offset}}</y>
+      <width>{{ w_left }}</width>
+      <height>{{ inner_h }}</height>
+      <monitor>{{ monitor }}</monitor>
+    </action>
+  </keybind>
+  <keybind key="{{ prefix }}l">
+    <action name="MoveResizeTo">
+      <x>{{ mid_x }}</x>
+      <y>{{ top_offset + outer_margin }}</y>
+      <width>{{ w_right }}</width>
+      <height>{{ inner_h }}</height>
+      <monitor>{{ monitor }}</monitor>
+    </action>
+  </keybind>
+  <keybind key="{{ prefix }}j">
+    <action name="MoveResizeTo">
+      <y>{{ mid_y }}</y>
+      <height>{{ h_bottom }}</height>
+      <monitor>{{ monitor }}</monitor>
+    </action>
+  </keybind>
+  <keybind key="{{ prefix }}k">
+    <action name="MoveResizeTo">
+      <y>{{ top_offset + outer_margin }}</y>
+      <height>{{ h_top }}</height>
+      <monitor>{{ monitor }}</monitor>
+    </action>
+  </keybind>
+  <keybind key="{{ prefix }}f">
+    <action name="MoveResizeTo">
+      <x>{{ outer_margin }}</x>
+      <y>{{ top_offset + outer_margin }}</y>
+      <width>{{ inner_w }}</width>
+      <height>{{ inner_h }}</height>
+      <monitor>{{ monitor }}</monitor>
+    </action>
+  </keybind>
+{% endmacro %}
+
+{% macro run_cmd(command, shell_name=none) %}
+    <action name="Execute"><command>{% if shell_name %}urxvt -name "{{ shell_name }}" -e sh -c {{ command|shell_quote() }}{% else %}{{ command }}{% endif %}</command></action>
+{% endmacro %}
+
+{% macro kb_cmd(keys, command, shell_name=none) %}
+  <keybind key="{{ keys }}">
+    {{ run_cmd(command, shell_name) }}
+  </keybind>
+{% endmacro %}
+
+{% macro focus_window(keys, direction) %}
+  <keybind key="{{ keys }}">
+    <action name="DirectionalTargetWindow">
+      <direction>{{ direction }}</direction>
+      <raise>yes</raise>
+      <finalactions>
+        <action name="Focus" />
+        <action name="Raise"/>
+      </finalactions>
+    </action>
+  </keybind>
+{% endmacro %}
+
+{% macro generic_action(key, action, final=false) %}
+  <keybind key="{{ key }}">
+    <action name="{{ action }}">
+      {% for tag, value in kwargs.items() %}<{{ tag }}>{{ value }}</{{ tag }}>{% endfor %}
+    </action>
+    {%- if final %}<action name="BreakChroot" />{% endif -%}
+  </keybind>
+{% endmacro %}
+
+{% macro move_relative(key) %}
+  {{ generic_action(key, 'MoveRelative', **kwargs) }}
+{% endmacro %}
+
+{% macro resize_relative(key) %}
+  {{ generic_action(key, 'ResizeRelative', **kwargs) }}
+{% endmacro %}
+
+{% macro i3_run_cmd(command, shell_name=none) -%}
+{%- if shell_name %}urxvt -name "{{ shell_name }}" -e sh -c {{ command|shell_quote() }}{% else %}{{ command }}{% endif -%}
+{%- endmacro %}
+
+{% macro i3_run(keys, command, shell_name=none, mod=true) -%}
+bindsym {% if mod %}$mod+{% endif %}{{ keys|i3_case() }} exec {{ i3_run_cmd(command, shell_name) }}
+{%- endmacro %}
+
+{% macro i3_do(keys, action, mod=true) -%}
+bindsym {% if mod %}$mod+{% endif %}{{ keys|i3_case() }} {{ action }}
+{%- endmacro %}
+
+{# Fonts #}
+
+{% macro urxvt_font(facename, size, xft=true, italic=true) -%}
+{% for i in (710, 711, 712, 713) %}\033]{{ i }};{{ urxvt_fontdef(facename, size, xft, italic and i == 712) }}\007{% endfor %}
+{%- endmacro %}
+
+{% macro urxvt_fontdef(facename, size, xft, italic) -%}
+{% if xft %}xft:{{ facename }}:size={{ size }}{% if italic %}:style=Italic{% endif %}{% else %}-*-{{ facename }}-medium-{% if italic %}i{% else %}r{% endif %}-*-*-{{ size }}-*-*-*-*-*-*-*{% endif %}
+{%- endmacro %}

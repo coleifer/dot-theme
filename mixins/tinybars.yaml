@@ -1,0 +1,11 @@
+openbox:
+  active:
+    separator: $highlight
+  font:
+    size: 4
+  inactive:
+    separator: $border
+  padding:
+    w: 0
+    h: 0
+  panel_items: ''

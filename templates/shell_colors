@@ -1,0 +1,16 @@
+THEME_FONT_X="{{ font.term }}"
+THEME_FONT_NAME="{% if font.term.startswith('xft:') %}{{ font.term.split(':')[1] }}{% else %}{{ font.term.split('-')[2] }}{% endif %}"
+{% if font.termsans %}THEME_FONT_XSANS="{{ font.termsans }}"{% endif %}
+THEME_FONT_PANGO="{{ font.bar }}"
+THEME_FONT_SANS="{{ font.default }}"
+THEME_FONT_SIZE={{ font.size }}
+THEME_SCREEN_W={{ screen.w }}
+THEME_SCREEN_H={{ screen.h }}
+THEME_BACKGROUND="{{ background }}"
+THEME_FOREGROUND="{{ foreground }}"
+THEME_ACTIVE="{{ active }}"
+THEME_BORDER="{{ border|default(background, true) }}"
+THEME_TEXT="{{ text }}"
+THEME_TITLE="{{ title|default(alt_black, true) }}"
+{% for i in range(16) %}THEME_{{ '%02d' % i }}="{{ color_list[i] }}"
+{% endfor %}
